@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as TypeMoq from 'typemoq';
 import { FileSystem } from '../../client/common/platform/fileSystem';
 import { IFileSystem, IPlatformService } from '../../client/common/platform/types';
-import { IProcessService } from '../../client/common/process/types';
+import { IProcessService, IProcessServiceFactory } from '../../client/common/process/types';
 import { ILogger, IPersistentStateFactory } from '../../client/common/types';
 import { IInterpreterLocatorService, InterpreterType, PythonInterpreter } from '../../client/interpreter/contracts';
 import { CondaService, KNOWN_CONDA_LOCATIONS } from '../../client/interpreter/locators/services/condaService';
@@ -25,14 +25,18 @@ suite('Interpreters Conda Service', () => {
     let fileSystem: TypeMoq.IMock<IFileSystem>;
     let registryInterpreterLocatorService: TypeMoq.IMock<IInterpreterLocatorService>;
     let serviceContainer: TypeMoq.IMock<IServiceContainer>;
+    let procServiceFactory: TypeMoq.IMock<IProcessServiceFactory>;
     setup(async () => {
         const logger = TypeMoq.Mock.ofType<ILogger>();
         processService = TypeMoq.Mock.ofType<IProcessService>();
         platformService = TypeMoq.Mock.ofType<IPlatformService>();
         registryInterpreterLocatorService = TypeMoq.Mock.ofType<IInterpreterLocatorService>();
         fileSystem = TypeMoq.Mock.ofType<IFileSystem>();
+        procServiceFactory = TypeMoq.Mock.ofType<IProcessServiceFactory>();
+        procServiceFactory.setup(p => p.create(TypeMoq.It.isAny())).returns(() => Promise.resolve(processService.object));
+
         serviceContainer = TypeMoq.Mock.ofType<IServiceContainer>();
-        serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IProcessService), TypeMoq.It.isAny())).returns(() => processService.object);
+        serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IProcessServiceFactory), TypeMoq.It.isAny())).returns(() => procServiceFactory.object);
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IPlatformService), TypeMoq.It.isAny())).returns(() => platformService.object);
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(ILogger), TypeMoq.It.isAny())).returns(() => logger.object);
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IFileSystem), TypeMoq.It.isAny())).returns(() => fileSystem.object);

@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import { Uri } from 'vscode';
 import { PythonSettings } from '../../../common/configSettings';
-import { IProcessService } from '../../../common/process/types';
+import { IProcessServiceFactory } from '../../../common/process/types';
 import { IServiceContainer } from '../../../ioc/types';
 import { IInterpreterVersionService, InterpreterType, PythonInterpreter } from '../../contracts';
 import { IVirtualEnvironmentManager } from '../../virtualEnvs/types';
@@ -13,7 +13,7 @@ import { CacheableLocatorService } from './cacheableLocatorService';
 export class CurrentPathService extends CacheableLocatorService {
     public constructor(@inject(IVirtualEnvironmentManager) private virtualEnvMgr: IVirtualEnvironmentManager,
         @inject(IInterpreterVersionService) private versionProvider: IInterpreterVersionService,
-        @inject(IProcessService) private processService: IProcessService,
+        @inject(IProcessServiceFactory) private readonly processServiceFactory: IProcessServiceFactory,
         @inject(IServiceContainer) serviceContainer: IServiceContainer) {
         super('CurrentPathService', serviceContainer);
     }
@@ -49,7 +49,8 @@ export class CurrentPathService extends CacheableLocatorService {
             });
     }
     private async getInterpreter(pythonPath: string, defaultValue: string) {
-        return this.processService.exec(pythonPath, ['-c', 'import sys;print(sys.executable)'], {})
+        const processService = await this.processServiceFactory.create();
+        return processService.exec(pythonPath, ['-c', 'import sys;print(sys.executable)'], {})
             .then(output => output.stdout.trim())
             .then(value => value.length === 0 ? defaultValue : value)
             .catch(() => defaultValue);    // Ignore exceptions in getting the executable.

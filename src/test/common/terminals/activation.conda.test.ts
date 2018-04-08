@@ -7,7 +7,7 @@ import * as TypeMoq from 'typemoq';
 import { Disposable } from 'vscode';
 import { EnumEx } from '../../../client/common/enumUtils';
 import { IFileSystem, IPlatformService } from '../../../client/common/platform/types';
-import { IProcessService } from '../../../client/common/process/types';
+import { IProcessService, IProcessServiceFactory } from '../../../client/common/process/types';
 import { CondaActivationCommandProvider } from '../../../client/common/terminal/environmentActivationProviders/condaActivationProvider';
 import { TerminalHelper } from '../../../client/common/terminal/helper';
 import { ITerminalActivationCommandProvider, TerminalShellType } from '../../../client/common/terminal/types';
@@ -25,6 +25,7 @@ suite('Terminal Environment Activation conda', () => {
     let pythonSettings: TypeMoq.IMock<IPythonSettings>;
     let serviceContainer: TypeMoq.IMock<IServiceContainer>;
     let processService: TypeMoq.IMock<IProcessService>;
+    let procServiceFactory: TypeMoq.IMock<IProcessServiceFactory>;
     let condaService: TypeMoq.IMock<ICondaService>;
 
     setup(() => {
@@ -36,10 +37,12 @@ suite('Terminal Environment Activation conda', () => {
         platformService = TypeMoq.Mock.ofType<IPlatformService>();
         processService = TypeMoq.Mock.ofType<IProcessService>();
         condaService = TypeMoq.Mock.ofType<ICondaService>();
+        procServiceFactory = TypeMoq.Mock.ofType<IProcessServiceFactory>();
+        procServiceFactory.setup(p => p.create(TypeMoq.It.isAny())).returns(() => Promise.resolve(processService.object));
 
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IPlatformService), TypeMoq.It.isAny())).returns(() => platformService.object);
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IFileSystem), TypeMoq.It.isAny())).returns(() => fileSystem.object);
-        serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IProcessService), TypeMoq.It.isAny())).returns(() => processService.object);
+        serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IProcessServiceFactory), TypeMoq.It.isAny())).returns(() => procServiceFactory.object);
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(ICondaService), TypeMoq.It.isAny())).returns(() => condaService.object);
 
         const configService = TypeMoq.Mock.ofType<IConfigurationService>();
