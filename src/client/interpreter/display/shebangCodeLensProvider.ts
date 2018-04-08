@@ -41,7 +41,7 @@ export class ShebangCodeLensProvider implements IShebangCodeLensProvider {
             cmdFile = parts.shift()!;
             args = parts.concat(args);
         }
-        const processService = await this.processServiceFactory.create();
+        const processService = await this.processServiceFactory.create(resource);
         return processService.exec(cmdFile, args)
             .then(output => output.stdout.trim())
             .catch(() => '');
