@@ -4,7 +4,6 @@
 // tslint:disable:no-any
 
 import { spawn } from 'child_process';
-import { inject, injectable, optional } from 'inversify';
 import { Observable } from 'rxjs/Observable';
 import { Disposable } from 'vscode';
 import { createDeferred } from '../helpers';
@@ -12,10 +11,8 @@ import { EnvironmentVariables } from '../variables/types';
 import { DEFAULT_ENCODING } from './constants';
 import { ExecutionResult, IBufferDecoder, IProcessService, ObservableExecutionResult, Output, SpawnOptions, StdErrError } from './types';
 
-@injectable()
 export class ProcessService implements IProcessService {
-    constructor(@inject(IBufferDecoder) private readonly decoder: IBufferDecoder,
-        @optional() private readonly env?: EnvironmentVariables) { }
+    constructor(private readonly decoder: IBufferDecoder, private readonly env?: EnvironmentVariables) { }
     public execObservable(file: string, args: string[], options: SpawnOptions = {}): ObservableExecutionResult<string> {
         const encoding = options.encoding = typeof options.encoding === 'string' && options.encoding.length > 0 ? options.encoding : DEFAULT_ENCODING;
         delete options.encoding;
