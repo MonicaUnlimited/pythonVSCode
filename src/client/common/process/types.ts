@@ -41,6 +41,12 @@ export interface IProcessService {
     exec(file: string, args: string[], options?: SpawnOptions): Promise<ExecutionResult<string>>;
 }
 
+export const IProcessServiceFactory = Symbol('IProcessServiceFactory');
+
+export interface IProcessServiceFactory {
+    create(resource?: Uri): Promise<IProcessService>;
+}
+
 export const IPythonExecutionFactory = Symbol('IPythonExecutionFactory');
 
 export interface IPythonExecutionFactory {

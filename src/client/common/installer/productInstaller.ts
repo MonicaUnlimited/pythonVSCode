@@ -2,7 +2,6 @@ import { inject, injectable, named } from 'inversify';
 import * as os from 'os';
 import * as path from 'path';
 import { OutputChannel, Uri } from 'vscode';
-import * as vscode from 'vscode';
 import { IFormatterHelper } from '../../formatters/types';
 import { IServiceContainer } from '../../ioc/types';
 import { ILinterManager } from '../../linters/types';
@@ -10,7 +9,7 @@ import { ITestsHelper } from '../../unittests/common/types';
 import { IApplicationShell } from '../application/types';
 import { STANDARD_OUTPUT_CHANNEL } from '../constants';
 import { IPlatformService } from '../platform/types';
-import { IProcessService, IPythonExecutionFactory } from '../process/types';
+import { IProcessServiceFactory, IPythonExecutionFactory } from '../process/types';
 import { ITerminalServiceFactory } from '../terminal/types';
 import { IConfigurationService, IInstaller, ILogger, InstallerResponse, IOutputChannel, ModuleNamePurpose, Product } from '../types';
 import { ProductNames } from './productNames';
@@ -78,7 +77,7 @@ abstract class BaseInstaller {
             const pythonProcess = await this.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory).create(resource);
             return pythonProcess.isModuleInstalled(executableName);
         } else {
-            const process = this.serviceContainer.get<IProcessService>(IProcessService);
+            const process = await this.serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory).create(resource);
             return process.exec(executableName, ['--version'], { mergeStdOutErr: true })
                 .then(() => true)
                 .catch(() => false);
@@ -217,7 +216,7 @@ export class ProductInstaller implements IInstaller {
     private ProductTypes = new Map<Product, ProductType>();
 
     constructor(@inject(IServiceContainer) private serviceContainer: IServiceContainer,
-        @inject(IOutputChannel) @named(STANDARD_OUTPUT_CHANNEL) private outputChannel: vscode.OutputChannel) {
+        @inject(IOutputChannel) @named(STANDARD_OUTPUT_CHANNEL) private outputChannel: OutputChannel) {
         this.ProductTypes.set(Product.flake8, ProductType.Linter);
         this.ProductTypes.set(Product.mypy, ProductType.Linter);
         this.ProductTypes.set(Product.pep8, ProductType.Linter);

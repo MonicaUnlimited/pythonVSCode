@@ -6,7 +6,7 @@ import * as path from 'path';
 import { Uri } from 'vscode';
 import { IApplicationShell, IWorkspaceService } from '../../../common/application/types';
 import { IFileSystem } from '../../../common/platform/types';
-import { IProcessService } from '../../../common/process/types';
+import { IProcessServiceFactory } from '../../../common/process/types';
 import { ICurrentProcess } from '../../../common/types';
 import { getPythonExecutable } from '../../../debugger/Common/Utils';
 import { IServiceContainer } from '../../../ioc/types';
@@ -19,14 +19,14 @@ const pipEnvFileNameVariable = 'PIPENV_PIPFILE';
 @injectable()
 export class PipEnvService extends CacheableLocatorService {
     private readonly versionService: IInterpreterVersionService;
-    private readonly process: IProcessService;
+    private readonly processServiceFactory: IProcessServiceFactory;
     private readonly workspace: IWorkspaceService;
     private readonly fs: IFileSystem;
 
     constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
         super('PipEnvService', serviceContainer);
         this.versionService = this.serviceContainer.get<IInterpreterVersionService>(IInterpreterVersionService);
-        this.process = this.serviceContainer.get<IProcessService>(IProcessService);
+        this.processServiceFactory = this.serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory);
         this.workspace = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
         this.fs = this.serviceContainer.get<IFileSystem>(IFileSystem);
     }
@@ -91,7 +91,8 @@ export class PipEnvService extends CacheableLocatorService {
 
     private async invokePipenv(arg: string, rootPath: string): Promise<string | undefined> {
         try {
-            const result = await this.process.exec(execName, [arg], { cwd: rootPath });
+            const processService = await this.processServiceFactory.create(Uri.file(rootPath));
+            const result = await processService.exec(execName, [arg], { cwd: rootPath });
             if (result && result.stdout) {
                 return result.stdout.trim();
             }
