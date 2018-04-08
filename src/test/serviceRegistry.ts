@@ -95,11 +95,9 @@ export class IocContainer {
     public registerMockProcessTypes() {
         this.serviceManager.addSingleton<IBufferDecoder>(IBufferDecoder, BufferDecoder);
         const processServiceFactory = TypeMoq.Mock.ofType<IProcessServiceFactory>();
-        processServiceFactory.setup(f => f.create(TypeMoq.It.isAny())).returns(() => {
-            // tslint:disable-next-line:no-any
-            const processService = new MockProcessService(new ProcessService(new BufferDecoder(), process.env as any));
-            return Promise.resolve(processService);
-        });
+        // tslint:disable-next-line:no-any
+        const processService = new MockProcessService(new ProcessService(new BufferDecoder(), process.env as any));
+        processServiceFactory.setup(f => f.create(TypeMoq.It.isAny())).returns(() => Promise.resolve(processService));
         this.serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
         this.serviceManager.addSingleton<IPythonToolExecutionService>(IPythonToolExecutionService, PythonToolExecutionService);
     }
