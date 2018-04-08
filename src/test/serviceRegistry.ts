@@ -98,6 +98,7 @@ export class IocContainer {
         // tslint:disable-next-line:no-any
         const processService = new MockProcessService(new ProcessService(new BufferDecoder(), process.env as any));
         processServiceFactory.setup(f => f.create(TypeMoq.It.isAny())).returns(() => Promise.resolve(processService));
+        this.serviceManager.addSingletonInstance<IProcessServiceFactory>(IProcessServiceFactory, processServiceFactory.object);
         this.serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
         this.serviceManager.addSingleton<IPythonToolExecutionService>(IPythonToolExecutionService, PythonToolExecutionService);
     }
