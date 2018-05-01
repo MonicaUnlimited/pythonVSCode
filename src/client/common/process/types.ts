@@ -4,6 +4,7 @@
 import { ChildProcess, SpawnOptions as ChildProcessSpawnOptions } from 'child_process';
 import { Observable } from 'rxjs/Observable';
 import { CancellationToken, Uri } from 'vscode';
+import { Architecture } from '../platform/types';
 import { ExecutionInfo } from '../types';
 import { EnvironmentVariables } from '../variables/types';
 
@@ -44,12 +45,36 @@ export interface IProcessService {
 export const IPythonExecutionFactory = Symbol('IPythonExecutionFactory');
 
 export interface IPythonExecutionFactory {
+    /**
+     * Create IPythonExecution service for the provided resource.
+     * @param {Uri} [resource]
+     * @returns {Promise<IPythonExecutionService>}
+     * @memberof IPythonExecutionFactory
+     */
     create(resource?: Uri): Promise<IPythonExecutionService>;
+    /**
+     * Create IPythonExecution service for the provided Python environment.
+     * @param {Uri} [resource]
+     * @returns {Promise<IPythonExecutionService>}
+     * @memberof IPythonExecutionFactory
+     */
+    create(pythonPath: string): Promise<IPythonExecutionService>;
 }
-
+export type ReleaseLevel = 'alpha' | 'beta' | 'candidate' | 'final';
+// tslint:disable-next-line:interface-name
+export type PythonVersionInfo = [number, number, number, ReleaseLevel];
+export type InterpreterInfomation = {
+    path: string;
+    version: string;
+    sysVersion: string;
+    architecture: Architecture;
+    version_info: PythonVersionInfo;
+    sysPrefix: string;
+};
 export const IPythonExecutionService = Symbol('IPythonExecutionService');
 
 export interface IPythonExecutionService {
+    getInterpreterInformation(): Promise<InterpreterInfomation | undefined>;
     getExecutablePath(): Promise<string>;
     isModuleInstalled(moduleName: string): Promise<boolean>;
 

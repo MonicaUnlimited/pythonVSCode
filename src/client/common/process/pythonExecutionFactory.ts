@@ -14,10 +14,15 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
     constructor(@inject(IServiceContainer) private serviceContainer: IServiceContainer) {
         this.envVarsService = serviceContainer.get<IEnvironmentVariablesProvider>(IEnvironmentVariablesProvider);
     }
-    public async create(resource?: Uri): Promise<IPythonExecutionService> {
-        return this.envVarsService.getEnvironmentVariables(resource)
-            .then(customEnvVars => {
-                return new PythonExecutionService(this.serviceContainer, customEnvVars, resource);
-            });
+    public async create(resource?: string | Uri): Promise<IPythonExecutionService> {
+        if (typeof resource === 'string') {
+            const pythonPath = resource;
+            return new PythonExecutionService(this.serviceContainer, { pythonPath });
+        } else {
+            return this.envVarsService.getEnvironmentVariables(resource)
+                .then(customEnvVars => {
+                    return new PythonExecutionService(this.serviceContainer, { env: customEnvVars, resource });
+                });
+        }
     }
 }

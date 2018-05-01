@@ -70,6 +70,9 @@ export class PythonInterpreterLocatorService implements IInterpreterLocatorServi
     private getLocators(): IInterpreterLocatorService[] {
         const locators: IInterpreterLocatorService[] = [];
         // The order of the services is important.
+        // The order is important because the data sources at the bottom of the list do not contain all,
+        //  the information about the interpreters (e.g. type, environment name, etc).
+        // This way, the items returned from the top of the list will win, when we combine the items returned.
         if (this.platform.isWindows) {
             locators.push(this.serviceContainer.get<IInterpreterLocatorService>(IInterpreterLocatorService, WINDOWS_REGISTRY_SERVICE));
         }
